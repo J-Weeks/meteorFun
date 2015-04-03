@@ -16,21 +16,20 @@ if (Meteor.isClient) {
       return Session.get("hideCompleted");
     },
     incompleteCount: function () {
-    return Tasks.find({checked: {$ne: true}}).count();
+      return Tasks.find({checked: {$ne: true}}).count();
     }
-
   });
-  // Inside the if (Meteor.isClient) block, right after Template.body.helpers:
-  Template.body.events({
 
+  Template.body.events({
     "submit .new-task": function (event) {
       // This function is called when the new task form is submitted
-
       var text = event.target.text.value;
 
       Tasks.insert({
         text: text,
-        createdAt: new Date() // current time
+        createdAt: new Date(),            // current time
+        owner: Meteor.userId(),           // _id of logged in user
+        username: Meteor.user().username  // username of logged in user
       });
 
       // Clear form
@@ -39,21 +38,22 @@ if (Meteor.isClient) {
       // Prevent default form submit
       return false;
     },
-
     "change .hide-completed input": function (event) {
-    Session.set("hideCompleted", event.target.checked);
+      Session.set("hideCompleted", event.target.checked);
     }
-
   });
 
   Template.task.events({
-  "click .toggle-checked": function () {
-    // Set the checked property to the opposite of its current value
-    Tasks.update(this._id, {$set: {checked: ! this.checked}});
-  },
-  "click .delete": function () {
-    Tasks.remove(this._id);
-  }
+    "click .toggle-checked": function () {
+      // Set the checked property to the opposite of its current value
+      Tasks.update(this._id, {$set: {checked: ! this.checked}});
+    },
+    "click .delete": function () {
+      Tasks.remove(this._id);
+    }
   });
 
+  Accounts.ui.config({
+    passwordSignupFields: "USERNAME_ONLY"
+  });
 }
